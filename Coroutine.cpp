@@ -5,12 +5,84 @@
 #include <stack>
 #include <thread>
 #include <variant>
+#include <deque>
+#include <queue>
+
+using namespace std::chrono_literals;
 /*
  * 规定名称格式：
  * 形如promise_type这样的使用匈牙利命名法的函数名称对应标准库
  * 使用小驼峰命名法的为自定义函数
  * 使用大驼峰命名法的为自定义类
  */
+ // 即协程调度器(Scheduler)， 使用名称Loop来指代。
+ // 由于传统协程通常存在一个循环来拉取事件，因此称为Loop
+struct Loop
+{
+	std::deque<std::coroutine_handle<>> mReadyQueue;
+	//std::deque<std::coroutine_handle<>> mWaitingQueue;
+
+	struct TimeEntry
+	{
+		std::chrono::system_clock::time_point expireTime;
+		std::coroutine_handle<> coroutine;
+
+		bool operator<(const TimeEntry& other) const noexcept
+		{
+			return expireTime > other.expireTime;
+		}
+	};
+	//priority_queue：底层采用堆实现的优先队列。默认采用大顶堆。
+	std::priority_queue<TimeEntry> mTimerHeap;
+
+	void addTask(std::coroutine_handle<> coroutine)
+	{
+		mReadyQueue.push_front(coroutine);
+	}
+	void addTimer(std::chrono::system_clock::time_point expireTime,
+		std::coroutine_handle<> coroutine)
+	{
+		mTimerHeap.push({ expireTime, coroutine });
+	}
+	void runAll()
+	{
+		while (!mTimerHeap.empty() || !mReadyQueue.empty())
+		{
+			//在当前的逻辑下，首先处理就绪队列中的任务，全部执行完成后查询等待任务堆。
+			while (!mReadyQueue.empty())
+			{
+				auto coroutine = mReadyQueue.front();
+				mReadyQueue.pop_front();
+				coroutine.resume();
+			}
+			//任务堆为小顶堆，时间点最近的事件在堆顶。
+			//如果有任务到达时间，则将其加入就绪队列，再次循环。
+			//如果没有任务到达时间，由于此时已经处理完所有就绪任务，
+			//则开始睡眠，直到第一个任务就绪。
+			if (!mTimerHeap.empty())
+			{
+				auto nowTime = std::chrono::system_clock::now();
+				auto timer = std::move(mTimerHeap.top());
+				if (timer.expireTime < nowTime)
+				{
+					mTimerHeap.pop();
+					timer.coroutine.resume();
+				}
+				else
+				{
+					std::this_thread::sleep_until(timer.expireTime);
+				}
+			}
+		}
+	}
+	Loop& operator=(Loop&&) = delete;
+};
+
+Loop& getLoop()
+{
+	static Loop loop;
+	return loop;
+}
 
 struct RepeatAwaiter
 {
@@ -31,10 +103,10 @@ struct PreviousAwaiter {
 
 	bool await_ready() const noexcept { return false; }
 
-	std::coroutine_handle<> await_suspend(std::coroutine_handle<> coroutine) const noexcept {
+	std::coroutine_handle<> await_suspend(std::coroutine_handle<> coroutine) const noexcept
+	{
 		if (mPrevious)
 		{
-			debug(), "await suspend called, mPrevious: ", mPrevious.address();
 			return mPrevious;
 		}
 		else
@@ -96,10 +168,10 @@ struct Promise
 		return std::coroutine_handle<Promise>::from_promise(*this);
 	}
 
-	//可能会没有返回值，此时返回会报错。
-	//exception_ptr是记录异常信息的指针，是经过类型擦除的指针。
-	//这里使用variant令返回值和报错信息共享同一内存空间。
+	
 	std::coroutine_handle<> mPrevious{};
+	//可能会没有返回值,此时mException中将会记录报错信息。
+	//exception_ptr是记录异常信息的指针，是经过类型擦除的指针。
 	std::exception_ptr mException{};
 	//通过结构体，联合体等包装一层之后，mResult不会在类实例化的时候被初始化。
 	union 
@@ -125,12 +197,12 @@ struct Promise<void>
 
 	void unhandled_exception()
 	{
-		mResultException = std::current_exception();
+		mException = std::current_exception();
 	}
 
 	auto yield_void(int)
 	{
-		mResultException = std::current_exception();
+		mException = std::current_exception();
 		return std::suspend_always();
 	}
 
@@ -142,9 +214,9 @@ struct Promise<void>
 	void result()
 	{
 		//当指针不为空时，抛出异常。这里告诉编译器该分支不常发生
-		if (mResultException) [[unlikely]]
+		if (mException) [[unlikely]]
 			{
-				std::rethrow_exception(mResultException);
+				std::rethrow_exception(mException);
 			}
 	}
 	std::coroutine_handle<Promise> get_return_object()
@@ -153,7 +225,7 @@ struct Promise<void>
 	}
 
 	//对void进行偏特化，此时直接使用记录异常信息的指针即可。
-	std::exception_ptr mResultException{};
+	std::exception_ptr mException{};
 	std::coroutine_handle<> mPrevious{};
 
 	Promise() = default;
@@ -233,12 +305,12 @@ struct SleepAwaiter
 	bool await_ready() const
 	{
 		//如果当前时间大于等于设定时间，则开始继续执行，否则挂起。
-		return std::chrono::system_clock::now() >= mExpireTime;
+		return false;
 	}
-	std::coroutine_handle<> await_suspend(std::coroutine_handle<> coroutine) const
+	void await_suspend(std::coroutine_handle<> coroutine) const
 	{
-		std::this_thread::sleep_until(mExpireTime);
-		return coroutine;
+		//调度器中记录设定时间和对应的协程，以便到达时间后返回。
+		getLoop().addTimer(mExpireTime, coroutine);
 	}
 
 	void await_resume() const noexcept
@@ -259,22 +331,29 @@ Task<void> sleep_for(std::chrono::system_clock::duration duration)
 	co_return;
 }
 
-Task<int> hello()
+Task<int> hello1()
 {
-	debug(), "hello开始睡觉了";
-	co_await sleep_for(std::chrono::seconds(1));
-	debug(), "hello睡醒了";
+	debug(), "hello1开始睡觉了";
+	co_await sleep_for(2s);
+	debug(), "hello1睡醒了";
 	co_return 42;
+}
+Task<int> hello2()
+{
+	debug(), "hello2开始睡觉了";
+	co_await sleep_for(4s);
+	debug(), "hello2睡醒了";
+	co_return 222;
 }
 
 int main()
 {
-	Task t = hello();
-	while (!t.mCoroutine.done())
-	{
-		t.mCoroutine.resume();
-		debug(), "main得到hello结果为",
-			t.mCoroutine.promise().result();
-	}
+	Task t1 = hello1();
+	Task t2 = hello2();
+	getLoop().addTask(t1);
+	getLoop().addTask(t2);
+	getLoop().runAll();
+	debug(), "主函数中获得hello1的结果：", t1.mCoroutine.promise().result();
+	debug(), "主函数中获得hello2的结果：", t2.mCoroutine.promise().result();
 	return 0;
 }
