@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(include)
 
 add_executable(mini_async
-    src/main.cpp
+    src/examples/epoll_loop.cpp
     include/and_then.hpp
     include/concepts.hpp
     include/debug.hpp

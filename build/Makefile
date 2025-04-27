@@ -129,29 +129,29 @@ mini_async/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/build
 .PHONY : mini_async/fast
 
-src/main.o: src/main.cpp.o
-.PHONY : src/main.o
+src/examples/epoll_loop.o: src/examples/epoll_loop.cpp.o
+.PHONY : src/examples/epoll_loop.o
 
 # target to build an object file
-src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/main.cpp.o
-.PHONY : src/main.cpp.o
+src/examples/epoll_loop.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o
+.PHONY : src/examples/epoll_loop.cpp.o
 
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
+src/examples/epoll_loop.i: src/examples/epoll_loop.cpp.i
+.PHONY : src/examples/epoll_loop.i
 
 # target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
+src/examples/epoll_loop.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.i
+.PHONY : src/examples/epoll_loop.cpp.i
 
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
+src/examples/epoll_loop.s: src/examples/epoll_loop.cpp.s
+.PHONY : src/examples/epoll_loop.s
 
 # target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
+src/examples/epoll_loop.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mini_async.dir/build.make CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.s
+.PHONY : src/examples/epoll_loop.cpp.s
 
 # Help Target
 help:
@@ -162,9 +162,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... mini_async"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
+	@echo "... src/examples/epoll_loop.o"
+	@echo "... src/examples/epoll_loop.i"
+	@echo "... src/examples/epoll_loop.s"
 .PHONY : help
 
 

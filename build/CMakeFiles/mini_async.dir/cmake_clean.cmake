@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/mini_async.dir/src/main.cpp.o"
-  "CMakeFiles/mini_async.dir/src/main.cpp.o.d"
+  "CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o"
+  "CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o.d"
   "mini_async"
   "mini_async.pdb"
 )

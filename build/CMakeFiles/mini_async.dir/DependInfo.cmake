@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/bjy15364883518/project/mini_async/src/main.cpp" "CMakeFiles/mini_async.dir/src/main.cpp.o" "gcc" "CMakeFiles/mini_async.dir/src/main.cpp.o.d"
+  "/home/bjy15364883518/project/mini_async/src/examples/epoll_loop.cpp" "CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o" "gcc" "CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o.d"
   )
 
 # Targets to which this target links.

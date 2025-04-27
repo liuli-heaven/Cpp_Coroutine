@@ -69,28 +69,28 @@ include CMakeFiles/mini_async.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/mini_async.dir/flags.make
 
-CMakeFiles/mini_async.dir/src/main.cpp.o: CMakeFiles/mini_async.dir/flags.make
-CMakeFiles/mini_async.dir/src/main.cpp.o: ../src/main.cpp
-CMakeFiles/mini_async.dir/src/main.cpp.o: CMakeFiles/mini_async.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bjy15364883518/project/mini_async/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mini_async.dir/src/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mini_async.dir/src/main.cpp.o -MF CMakeFiles/mini_async.dir/src/main.cpp.o.d -o CMakeFiles/mini_async.dir/src/main.cpp.o -c /home/bjy15364883518/project/mini_async/src/main.cpp
+CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o: CMakeFiles/mini_async.dir/flags.make
+CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o: ../src/examples/epoll_loop.cpp
+CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o: CMakeFiles/mini_async.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bjy15364883518/project/mini_async/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o -MF CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o.d -o CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o -c /home/bjy15364883518/project/mini_async/src/examples/epoll_loop.cpp
 
-CMakeFiles/mini_async.dir/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mini_async.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bjy15364883518/project/mini_async/src/main.cpp > CMakeFiles/mini_async.dir/src/main.cpp.i
+CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bjy15364883518/project/mini_async/src/examples/epoll_loop.cpp > CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.i
 
-CMakeFiles/mini_async.dir/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mini_async.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bjy15364883518/project/mini_async/src/main.cpp -o CMakeFiles/mini_async.dir/src/main.cpp.s
+CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bjy15364883518/project/mini_async/src/examples/epoll_loop.cpp -o CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.s
 
 # Object files for target mini_async
 mini_async_OBJECTS = \
-"CMakeFiles/mini_async.dir/src/main.cpp.o"
+"CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o"
 
 # External object files for target mini_async
 mini_async_EXTERNAL_OBJECTS =
 
-mini_async: CMakeFiles/mini_async.dir/src/main.cpp.o
+mini_async: CMakeFiles/mini_async.dir/src/examples/epoll_loop.cpp.o
 mini_async: CMakeFiles/mini_async.dir/build.make
 mini_async: CMakeFiles/mini_async.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bjy15364883518/project/mini_async/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mini_async"
