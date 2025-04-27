@@ -1,0 +1,220 @@
+#pragma once
+#include "uninitialized.hpp"
+#include "previous_awaiter.hpp"
+namespace mini_async
+{
+	template<class T>
+	struct Promise
+	{
+		Promise() noexcept {}
+		Promise(Promise&&) = delete;
+		~Promise()noexcept {}
+		//当协程启动时，决定是否立即挂起
+		auto initial_suspend()
+		{
+			return std::suspend_always();
+		}
+		//当协程结束时，决定是否挂起。
+		auto final_suspend() noexcept
+		{
+			//返回一个自定义的挂起器，来处理协程结束时的特定逻辑
+			return PreviousAwaiter(mPrevious);
+		}
+
+		void unhandled_exception()
+		{
+			mException = std::current_exception();
+		}
+
+		auto yield_value(T ret) noexcept
+		{
+			//std::construct_at(&mResult, std::move(ret)) �ȼ���new (&mResult) T(std::move(ret));
+			mResult.putValue(std::move(ret));
+			return std::suspend_always();
+		}
+
+		void return_value(T&& ret)
+		{
+			mResult.putValue(std::move(ret));
+		}
+
+		void return_value(const T& ret)
+		{
+			mResult.putValue(ret);
+		}
+
+		T result()
+		{
+			//如果存在返回值，则获取到指向返回值的指针。
+			//如果错误信息指针存在，则抛出异常。这里告诉编译器该分支不常发生
+			if (mException) [[unlikely]]
+			{
+				std::rethrow_exception(mException);
+			}
+			//错误信息指针不存在时，将返回值所有权移交后返回。
+			//std::destroy_at(&mResult) 等价于mResult.~T();
+			return mResult.moveValue();
+		}
+		std::coroutine_handle<Promise> get_return_object()
+		{
+			return std::coroutine_handle<Promise>::from_promise(*this);
+		}
+
+
+		std::coroutine_handle<> mPrevious{};
+		//可能会没有返回值,此时mException中将会记录报错信息。
+		//exception_ptr是记录异常信息的指针，是经过类型擦除的指针。
+		std::exception_ptr mException{};
+		//通过结构体，联合体等包装一层之后，mResult不会在类实例化的时候被初始化。
+		
+		Uninitialized<T> mResult;
+		
+	};
+
+	template<>
+	struct Promise<void>
+	{
+		//当协程启动时，决定是否立即挂起
+		auto initial_suspend()
+		{
+			return std::suspend_always();
+		}
+		//当协程结束时，决定是否挂起。
+		auto final_suspend() noexcept
+		{
+			//返回一个自定义的挂起器，来处理协程结束时的特定逻辑
+			return PreviousAwaiter(mPrevious);
+		}
+
+		void unhandled_exception()
+		{
+			mException = std::current_exception();
+		}
+
+		auto yield_void(int)
+		{
+			mException = std::current_exception();
+			return std::suspend_always();
+		}
+
+		void return_void() noexcept
+		{
+
+		}
+
+		void result()
+		{
+			
+			if (mException) [[unlikely]]
+				{
+					std::rethrow_exception(mException);
+				}
+		}
+		std::coroutine_handle<Promise> get_return_object()
+		{
+			return std::coroutine_handle<Promise>::from_promise(*this);
+		}
+
+		//对void进行偏特化，此时直接使用记录异常信息的指针即可。
+		std::exception_ptr mException{};
+		std::coroutine_handle<> mPrevious{};
+
+		Promise() = default;
+		Promise(Promise&&) = delete;
+		~Promise() = default;
+	};
+
+	template<class T = void, class P = Promise<T>>
+	struct Task
+	{
+		using promise_type = P;
+		std::coroutine_handle<promise_type> mCoroutine;
+
+		Task(std::coroutine_handle<promise_type> coroutine) noexcept : mCoroutine(coroutine) {}
+		Task(Task&& that) noexcept : mCoroutine(that.mCoroutine)
+		{
+			that.mCoroutine = nullptr;
+		}
+		Task& operator=(Task&& that) noexcept
+		{
+			std::swap(mCoroutine, that.mCoroutine);
+		}
+
+		~Task()
+		{
+			if(mCoroutine) mCoroutine.destroy();
+			//debug(), "Task.mCoroutine destroy";
+		}
+
+		struct Awaiter
+		{
+			std::coroutine_handle<promise_type> mCoroutine;
+			// 用于检查协程是否需要挂起
+			// 如果函数返回true, 则代表继续执行，不需要挂起。
+			// 如果返回false,则表示挂起
+			// co_await首先调用await_ready函数，如果返回值为false,则调用await_suspend
+			bool await_ready() const noexcept
+			{
+				return false;
+			}
+			//该函数接受一个协程句柄作为参数，为当前协程的句柄
+			//该函数返回值为协程句柄，表示恢复时应继续执行的位置。
+			std::coroutine_handle<promise_type> await_suspend(std::coroutine_handle<> coroutine) const noexcept
+			{
+				/*
+ 				* std::coroutine_handel<>具有默认参数，相当于std::coroutine_handle<void> coroutine
+ 				* std::coroutine_handel<>是一个特化类型，对不同类型进行了类型擦除。
+ 				* 所以coroutine相当于一个原始指针void*，该void*中的数据块记录了协程判断和调度的一系列函数。
+ 				* 该方法的好处在于可以为不同类型的coroutine_handle提供相同接口。
+ 				*/
+ 				/*
+ 				 *此处参数coroutine是表示调用者，在执行co_await调用协程时，
+ 				 *会将当前上下文句柄传入WorldTask中的await_suspend中，即这里的coroutine
+ 				 *所以此处将coroutine记录给mCoroutine
+ 				 */
+				mCoroutine.promise().mPrevious = coroutine;
+				return mCoroutine;
+			}
+			//当协程聪挂起状态恢复的时候，会调用该函数
+			//该函数负责协程恢复时的一系列操作。
+			//await_resume函数在co_yield或co_return之后被调用。
+			T await_resume() const
+			{
+				//debug(), "await_resume()";
+				return mCoroutine.promise().result();
+			}
+		};
+
+		auto operator co_await() const noexcept
+		{
+			return Awaiter(mCoroutine);
+		}
+
+		operator std::coroutine_handle<promise_type>() const noexcept
+		{
+			return mCoroutine;
+		}
+	};
+
+	template<class Loop, class T, class P>
+	T run_task(Loop& loop, const Task<T, P>& t)
+	{
+		auto a = t.operator co_await();
+		a.await_suspend(std::noop_coroutine()).resume();
+		while (loop.run())
+		{
+			
+		}
+		return a.await_resume();
+	}
+
+	template<class T, class P>
+	void spawn_task(const Task<T, P>& t)
+	{
+		auto a = t.operator co_await();
+		a.await_suspend(std::noop_coroutine()).resume();
+	}
+
+}
+
+

@@ -1,0 +1,3 @@
+/home/bjy15364883518/project/mini_async/build/CMakeFiles/mini_async.dir
+/home/bjy15364883518/project/mini_async/build/CMakeFiles/edit_cache.dir
+/home/bjy15364883518/project/mini_async/build/CMakeFiles/rebuild_cache.dir
