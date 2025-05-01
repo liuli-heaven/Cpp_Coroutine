@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.16)
+project(mini_async LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-g")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+include_directories(include)
+
+add_executable(mini_async
+    src/examples/epoll_loop.cpp
+    include/and_then.hpp
+    include/concepts.hpp
+    include/debug.hpp
+    include/make_awaitable.hpp
+    include/mini_async.hpp
+    include/non_void_helper.hpp
+    include/previous_awaiter.hpp
+    include/random.hpp
+    include/rbtree.hpp
+    include/return_previous.hpp
+    include/std.hpp
+    include/task.hpp
+    include/timer_loop.hpp
+    include/uninitialized.hpp
+    include/when_all.hpp
+    include/when_any.hpp
+
+)

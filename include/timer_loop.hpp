@@ -20,7 +20,7 @@ namespace mini_async
 
 		friend bool operator<(SleepUntilPromise const& lhs, SleepUntilPromise const& rhs) noexcept
 		{
-			return lhs.mExpiretime < lhs.mExpiretime;
+			return lhs.mExpiretime < rhs.mExpiretime;
 		}
 	};
 
@@ -93,7 +93,7 @@ namespace mini_async
 	}
 	template<class Rep, class Period>
 	inline Task<void, SleepUntilPromise>
-	sleep_for(TimerLoop& loop, std::chrono::time_point<Rep, Period> duration)
+	sleep_for(TimerLoop& loop, std::chrono::duration<Rep, Period> duration)
 	{
 		auto d = std::chrono::duration_cast<SleepAwaiter::ClockType::duration>(duration);
 		if(d.count() > 0)

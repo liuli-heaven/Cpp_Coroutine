@@ -143,7 +143,7 @@ namespace mini_async
 		~Task()
 		{
 			if(mCoroutine) mCoroutine.destroy();
-			//debug(), "Task.mCoroutine destroy";
+			debug(), "Task.mCoroutine destroy";
 		}
 
 		struct Awaiter

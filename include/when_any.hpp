@@ -45,7 +45,7 @@ namespace mini_async
 	};
 
 	template<class T>
-	ReturnPreviousTask WhenAnyHelper(const auto& t, WhenAnyCtlBlock& control,
+	ReturnPreviousTask whenAnyHelper(const auto& t, WhenAnyCtlBlock& control,
 		Uninitialized<T>& result, std::size_t index)
 	{
 		try
@@ -95,9 +95,9 @@ namespace mini_async
 			taskArray.reserve(tasks.size());
 			for(int i = 0; i < tasks.size(); i++)
 			{
-				taskArray.push_back(WhenAnyHelper(tasks[i], control, result, i));
+				taskArray.push_back(whenAnyHelper(tasks[i], control, result, i));
 			}
-			co_await WhenAnyAwaiter{ control, taskArray };
+			co_await WhenAnyAwaiter(control, taskArray);
 		}
 		co_return result.moveValue();
 	}

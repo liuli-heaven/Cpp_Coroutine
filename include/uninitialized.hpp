@@ -38,6 +38,7 @@ namespace mini_async
 		{
 			return NonVoidHelper<>{};
 		}
+		void putValue(NonVoidHelper<>) {}
 	};
 
 	template<class T>
